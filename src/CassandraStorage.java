@@ -59,7 +59,7 @@ public class CassandraStorage
     static DynamicCompositeSerializer dcs = new DynamicCompositeSerializer(); 
     static ConfigurableConsistencyLevel ccl = new ConfigurableConsistencyLevel();    
 
-    private static Logger log = LoggerFactory.getLogger(PureThriftClient.class); 
+    private static Logger log = LoggerFactory.getLogger(CassandraStorage.class); 
 
     static {
 	Cluster myCluster = HFactory.getOrCreateCluster("test-cluster","localhost:9160");

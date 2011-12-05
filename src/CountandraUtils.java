@@ -90,15 +90,20 @@ public class CountandraUtils {
 	
 
     public enum TimeDimension {
-	MINUTELY(10, "m"), HOURLY(20, "H"), DAILY(30, "D"), MONTHLY(40, "M"), YEARLY(50, "Y"), ALLTIME(100, "A");
+	MINUTELY(10, "m", "MINUTELY"), HOURLY(20, "H", "HOURLY"), DAILY(30, "D", "DAILY"), MONTHLY(40, "M", "MONTHLY"), YEARLY(50, "Y", "YEARLY"), ALLTIME(100, "A", "ALLTIME");
 	private int code;
 	private String sCode;
+	private String lCode;
 	
-	
-	private TimeDimension(int c, String s) {
+	private TimeDimension(int c, String s, String l) {
 	    code = c;
 	    sCode = s;
+	    lCode = l;
 	}
+	public String getLCode() {
+	    return lCode;
+	}
+	
 	public int getCode() {
 	    return code;
 	}
@@ -214,35 +219,36 @@ public class CountandraUtils {
 	StringBuilder buf = new StringBuilder();
 	buf.setLength(0);
 	buf.append(" { \"Results\": ") ;
-	buf.append( "{ ");
+	buf.append( "{ \n");
 
 	buf.append(" 	\"Category\": ");
 	buf.append(category);
-	buf.append(",");
+	buf.append(",\n");
 
 	buf.append(" 	\"SubTree\": ");
 	buf.append(subTree);
-	buf.append(",");
+	buf.append(",\n");
 
 	buf.append(" 	\"Time Dimension\": ");
 	buf.append(timeDimension);
-	buf.append(",");
+	buf.append(",\n");
 
 	buf.append(" 	\"Time Period\": ");
 	buf.append(timePeriod);
-	buf.append(",");
+	buf.append(",\n");
 
-	buf.append("\n 	\"Data\": ");
+	buf.append("	\"Data\": ");
 	buf.append("\n[\n");
 
+	// MUST BE CHANGED 
+	// lookup(timeDimension) returns sCode of timeDimension
+	// First lookup the sCode for the timeDmension i.e DAILY => D , HOURLY to H
+	// and then 
+	// 	ResultStatus result = cu.executeQuery(category, subTree, lookup(timeDimension) , timePeriod, "Pacific");
+	        Iterate over the results similar to printResults
 	buf.append("            THIS IS WHERE THE RESULTS OF QUERY THING GOES             ");
-	
+	// EBD CHANGE
 	buf.append("\n]\n");
-	
-		   
-	
-
-
 	buf.append( "} ");
 	buf.append( "} ");
 
