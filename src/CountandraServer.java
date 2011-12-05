@@ -57,53 +57,7 @@ public class CountandraServer {
 			CountandraUtils.printResults();
 	    }
 
-	    
-	    
-	    /*
-	    List<CfDef> cfDefList = new ArrayList<CfDef>();         
-	    KsDef ksDef = new KsDef("abc", "org.apache.cassandra.locator.SimpleStrategy", cfDefList);
-	    ksDef.putToStrategy_options("replication_factor", "1");         
-
-
-	    KsDef ksDef2 = new KsDef("xyz", "org.apache.cassandra.locator.SimpleStrategy", cfDefList);
-	    ksDef2.putToStrategy_options("replication_factor", "1");  
-
-
-
-
-	    server.system_add_keyspace(ksDef); 
-	    server.system_add_keyspace(ksDef2); 
-
-	    */
-
-	
-	    /*
-	    List <KsDef> lkd= server.describe_keyspaces();
-	    System.out.println(lkd.size());
-
-	    for (int i=0; i< lkd.size(); i++) {
-		System.out.println("++++++++++++++++++++++");
-
-		System.out.println(lkd.get(i));
-		System.out.println("++++++++++++++++++++++");
-	    }
-	
-
-	    server.system_drop_keyspace("abc"); 
-
-	    */
-	    /*
-	    server.set_keyspace("xyz");
-	    
-	    CfDef columnFamily = new CfDef("xyz", "cf1");
-	    columnFamily.setKey_validation_class("UTF8Type");
-	    columnFamily.setComparator_type("UTF8Type");
-	    columnFamily.setDefault_validation_class("UTF8Type");
-	    server.system_add_column_family(columnFamily); 
-	    */
-
-
-	    //	NettyUtils.startupNettyServer(); 
+	    NettyUtils.startupNettyServer(); 
 	
 	} 
 	catch (IOException ioe) {

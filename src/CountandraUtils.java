@@ -34,6 +34,7 @@ import org.joda.time.DateTimeZone;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.*;
 
 import me.prettyprint.cassandra.serializers.DynamicCompositeSerializer;
 import me.prettyprint.cassandra.serializers.StringSerializer;
@@ -186,11 +187,78 @@ public class CountandraUtils {
 	}
     }
 
+    
+    public static String processRequest(String uri) {
+
+	
+	if (Pattern.matches("/query/.*", uri) ) {
+	    String [] splitParams = uri.split("/");
+	    
+	    if (splitParams.length > 3) {
+		String category = splitParams[2];
+		String subTree = splitParams[3];
+		String timeDimension = splitParams[4];
+		String period = splitParams[5];
+		return runQuery(category, subTree, timeDimension, period);
+	    }
+	}
+	else {
+	    return "it is NT a query";
+	}
+	return null;
+	
+
+    }
+
+    public static String runQuery(String category, String subTree, String timeDimension, String timePeriod) {
+	StringBuilder buf = new StringBuilder();
+	buf.setLength(0);
+	buf.append(" { \"Results\": ") ;
+	buf.append( "{ ");
+
+	buf.append(" 	\"Category\": ");
+	buf.append(category);
+	buf.append(",");
+
+	buf.append(" 	\"SubTree\": ");
+	buf.append(subTree);
+	buf.append(",");
+
+	buf.append(" 	\"Time Dimension\": ");
+	buf.append(timeDimension);
+	buf.append(",");
+
+	buf.append(" 	\"Time Period\": ");
+	buf.append(timePeriod);
+	buf.append(",");
+
+	buf.append("\n 	\"Data\": ");
+	buf.append("\n[\n");
+
+	buf.append("            THIS IS WHERE THE RESULTS OF QUERY THING GOES             ");
+	
+	buf.append("\n]\n");
+	
+		   
+	
+
+
+	buf.append( "} ");
+	buf.append( "} ");
+
+	return (buf.toString());
+
+
+	
+
+    }
+
+
     // GET WEEKLY COUNTS FOR pti
     public static void printResults() {
 	CountandraUtils cu = new CountandraUtils();
 	
-	ResultStatus result = cu.executeQuery("pti", "com.amazon", "H", "11-03-2011|12-05-2011", "Pacific");
+	ResultStatus result = cu.executeQuery("pti", "com.amazon", "H", "11-03-2011~12-05-2011", "Pacific");
 	System.out.println("| Result executed in: {} microseconds against host: {}");
 	System.out.println(result.getExecutionTimeMicro());
 	System.out.println(result.getHostUsed().getName());
@@ -236,7 +304,7 @@ public class CountandraUtils {
 	
 	Matcher matcher = isNumber.matcher(timeQuery);
 	if (matcher.find()) {
-	    String s[] = timeQuery.split("\\|");
+	    String s[] = timeQuery.split("\\~");
 
 	    String startDate = s[0];
 	    String endDate = s[1];
