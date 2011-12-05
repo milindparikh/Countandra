@@ -91,6 +91,7 @@ public class NettyUtils {
 		buf.append("REQUEST_URI: " + request.getUri() + "\r\n\r\n");
 		//Writing response, wait till it is completely written and close channel after that
 
+		
 		buf.append(CountandraUtils.processRequest(request.getUri()));
 		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
 		response.setContent(ChannelBuffers.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));

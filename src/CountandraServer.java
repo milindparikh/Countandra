@@ -47,7 +47,8 @@ public class CountandraServer {
 	    CommandLine line = parser.parse( options, args );
 	    
 	    if (line.hasOption("s")) {
-		CountandraUtils.startupCassandraServer();
+		// cassandra server
+		CassandraUtils.startupCassandraServer();
 		if (line.hasOption("i")) {
 		    CountandraUtils.initBasicDataStructures();
 		}
@@ -56,7 +57,7 @@ public class CountandraServer {
 		CountandraUtils.populateTestData();
 			CountandraUtils.printResults();
 	    }
-
+	    // http server
 	    NettyUtils.startupNettyServer(); 
 	
 	} 

@@ -3,7 +3,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 
 import org.apache.cassandra.service.AbstractCassandraDaemon;
-import org.apache.cassandra.thrift.CassandraDaemon;
+
 import org.apache.cassandra.thrift.ConsistencyLevel; 
 import org.apache.cassandra.thrift.CassandraServer; 
 import org.apache.cassandra.thrift.CfDef; 
@@ -129,9 +129,7 @@ public class CountandraUtils {
 
 
     private static final Logger          logger                 = Logger.getLogger(CountandraUtils.class);
-    private static boolean               cassandraStarted       = false;
-    private static CassandraDaemon       daemon                 = null;
-    private static String CASSANDRA_CONFIG_URL = "cassandra.yaml";
+
 
     private static boolean nettyStarted = false;
     private static StringBuffer buf = new StringBuffer();    
@@ -192,6 +190,9 @@ public class CountandraUtils {
 	}
     }
 
+
+
+    // Make this thread safe
     
     public static String processRequest(String uri) {
 
@@ -245,7 +246,7 @@ public class CountandraUtils {
 	// First lookup the sCode for the timeDmension i.e DAILY => D , HOURLY to H
 	// and then 
 	// 	ResultStatus result = cu.executeQuery(category, subTree, lookup(timeDimension) , timePeriod, "Pacific");
-	        Iterate over the results similar to printResults
+	//	        Iterate over the results similar to printResults
 	buf.append("            THIS IS WHERE THE RESULTS OF QUERY THING GOES             ");
 	// EBD CHANGE
 	buf.append("\n]\n");
@@ -488,35 +489,6 @@ public class CountandraUtils {
 
     }
     
-    public static synchronized void startupCassandraServer() throws IOException {
-	if (cassandraStarted)
-	    return;
-
-        cassandraStarted = true;
-
-	System.setProperty("cassandra-foreground", "1");	
-	System.setProperty("cassandra.config", CASSANDRA_CONFIG_URL);              
-
-	 
-	try
-	    {
-		// run in own thread
-		new Thread(new Runnable() {
-			 
-			public void run()
-			{
-			    daemon = new CassandraDaemon();
-			    daemon.activate();
-			}
-		    }).start();
-	    }
-        catch (Throwable e)
-	    {
-
-		e.printStackTrace();
-		System.exit(2);
-	    }
-    }
 
 
 }
