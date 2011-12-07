@@ -92,7 +92,7 @@ public class CountandraUtils {
     public enum TimeDimension {
 	MINUTELY(10, "m", "MINUTELY"), HOURLY(20, "H", "HOURLY"), DAILY(30, "D", "DAILY"), MONTHLY(40, "M", "MONTHLY"), YEARLY(50, "Y", "YEARLY"), ALLTIME(100, "A", "ALLTIME");
 	private int code;
-	private String sCode;
+ 	private String sCode;
 	private String lCode;
 	
 	private TimeDimension(int c, String s, String l) {
@@ -112,6 +112,46 @@ public class CountandraUtils {
 	}
     }
 
+
+
+
+    public enum TimePeriod {
+	// THISHOUR
+	// LASTHOUR
+	// TODAY 
+	// YESTERDAY 
+	// LASTTFHOURS  -- last twenty four hours
+	// THISWEEK     
+	// LASTWEEK     
+	// THISMONTH
+	// LASTMONTH    
+	// THISQ        TBD
+	// LASTQ        TBD
+	// THISYEAR
+	// LASTYEAR
+	
+	THISHOUR("TH", "THISHOUR"), LASTHOUR("LH", "LASTHOUR"), LASTTFHOURS("LT", "LASTTFHOURS"), TODAY("TO", "TODAY"), YESTERDAY("YE", "YESTERDAY"), THISWEEK("TW", "THISWEEK"), LASTWEEK("LW", "LASTWEEK"), THISMONTH("TM", "THISMONTH"), LASTMONTH("LM", "LASTMONTH"), THISQ("TQ", "THISQ"), LASTQ("LQ", "LASTQ"), THISYEAR("TY", "THISYEAR"), LASTYEAR("LY", "LASTYEAR");
+	    
+	private String sCode;
+	private String lCode;
+	
+	private TimePeriod( String s, String l) {
+
+	    sCode = s;
+	    lCode = l;
+	}
+	public String getLCode() {
+	    return lCode;
+	}
+	
+	public String getSCode() {
+	    return sCode;
+	}
+ 
+	
+    }
+
+
     
     static HashMap <String, TimeDimension> hshSupportedTimeDimensions = new HashMap<String, TimeDimension> ();
     static {
@@ -122,8 +162,32 @@ public class CountandraUtils {
 	hshSupportedTimeDimensions.put("Y", TimeDimension.YEARLY);
 	hshSupportedTimeDimensions.put("A", TimeDimension.ALLTIME);
     }
+
+    static HashMap <String, TimeDimension> hshReverseSupportedTimeDimensions = new HashMap<String, TimeDimension> ();
+    static {
+	hshReverseSupportedTimeDimensions.put("MINUTELY", TimeDimension.MINUTELY);
+	hshReverseSupportedTimeDimensions.put("HOURLY", TimeDimension.HOURLY);
+	hshReverseSupportedTimeDimensions.put("DAILY", TimeDimension.DAILY);
+	hshReverseSupportedTimeDimensions.put("MONTHLY", TimeDimension.MONTHLY);
+	hshReverseSupportedTimeDimensions.put("YEARLY", TimeDimension.YEARLY);
+	hshReverseSupportedTimeDimensions.put("ALLTIME", TimeDimension.ALLTIME);
+    }
+
     
-    
+    static HashMap <String, TimePeriod> hshSupportedTimePeriods = new HashMap<String, TimePeriod> ();
+    static {
+	hshSupportedTimePeriods.put("THISHOUR", TimePeriod.THISHOUR);
+	hshSupportedTimePeriods.put("LASTHOUR", TimePeriod.LASTHOUR);
+	hshSupportedTimePeriods.put("LASTTFHOURS", TimePeriod.LASTTFHOURS);
+	hshSupportedTimePeriods.put("TODAY", TimePeriod.TODAY);
+	hshSupportedTimePeriods.put("YESTERDAY", TimePeriod.YESTERDAY);
+	hshSupportedTimePeriods.put("THISWEEK", TimePeriod.THISWEEK);
+	hshSupportedTimePeriods.put("LASTWEEK", TimePeriod.LASTWEEK);
+	hshSupportedTimePeriods.put("THISMONTH", TimePeriod.THISMONTH);
+	hshSupportedTimePeriods.put("THISYEAR", TimePeriod.THISYEAR);
+	hshSupportedTimePeriods.put("LASTYEAR", TimePeriod.LASTYEAR);
+    }
+     
 
     static String defaultTimeDimensions = "m,H,D,M,Y,A";
 
@@ -135,7 +199,32 @@ public class CountandraUtils {
     private static StringBuffer buf = new StringBuffer();    
 
 
-    public void denormalizedIncrement(String category, String ptimeDimensions, String denormalizedKey, long time, int value) {
+
+
+
+    public void increment(String category, String key, long time, int value) {
+	String lookupCategoryId = lookupCategoryId(category);
+	String timeDimensions = lookupCategoryTimeDimensions(lookupCategoryId);
+	
+	String [] splitKeys = key.split(delimiter);
+	int size = splitKeys.length;
+	for (int i = 1; i <= size; i++) {
+	    String subtree = new String();
+	    for (int j = 0; j < i; j++) {
+		if (j < (i-1) ) {
+		    subtree = subtree+splitKeys[j]+sDelimiter;
+		}
+		else {
+		    subtree = subtree+splitKeys[j];
+		}
+	    }
+	    denormalizedIncrement(lookupCategoryId, timeDimensions, subtree, time, value);
+	}
+    }
+
+
+
+    private void denormalizedIncrement(String category, String ptimeDimensions, String denormalizedKey, long time, int value) {
 	CassandraStorage cs = new CassandraStorage();
 	
 	DateTime dt = new DateTime(time);
@@ -193,6 +282,15 @@ public class CountandraUtils {
 
 
     // Make this thread safe
+
+
+
+    // query/pti/com.amazon/TODAY/HOURLY/COUNTS
+    // query/pti/com.amazon/THISMONTH/HOURLY/COUNTS
+    // query/pti/com.amazon/THISMONTH/DAILY/SUMS
+    // query/pti/com.amazon/10-07-2011:1800~12-08-2011:1900/MINUTELY/SQUARES
+
+
     
     public static String processRequest(String uri) {
 
@@ -244,10 +342,47 @@ public class CountandraUtils {
 	// MUST BE CHANGED 
 	// lookup(timeDimension) returns sCode of timeDimension
 	// First lookup the sCode for the timeDmension i.e DAILY => D , HOURLY to H
+
+	TimeDimension td = hshReverseSupportedTimeDimensions.get(timeDimension);
+	// should check for null; but do for now
+
+	CountandraUtils cu = new CountandraUtils();
+	ResultStatus result = cu.executeQuery(category, subTree, td.getSCode() , timePeriod, "Pacific");
+	
 	// and then 
 	// 	ResultStatus result = cu.executeQuery(category, subTree, lookup(timeDimension) , timePeriod, "Pacific");
 	//	        Iterate over the results similar to printResults
-	buf.append("            THIS IS WHERE THE RESULTS OF QUERY THING GOES             ");
+
+        if ( result instanceof QueryResult ) {
+
+	    buf.append("\n");
+	    
+		     
+	    
+            QueryResult<?> qr = (QueryResult)result;
+
+	    if ( qr.get() instanceof CounterSlice ) {
+		List <HCounterColumn <DynamicComposite>> lCols = ((CounterSlice)qr.get()).getColumns();
+		
+
+		for (int i = 0; i < lCols.size(); i++) {
+		    me.prettyprint.cassandra.model.HCounterColumnImpl  hcc =  (me.prettyprint.cassandra.model.HCounterColumnImpl ) lCols.get(i);
+		    
+		    DynamicComposite nameHcc = (DynamicComposite) hcc.getName();
+		    buf.append(hcc.getName());
+		    buf.append(hcc.getValue());
+
+		    
+		    System.out.println(hcc.getName());		    
+		    System.out.println(hcc.getValue());
+
+		    buf.append("\n");
+		} 
+	    }
+        }
+
+
+
 	// EBD CHANGE
 	buf.append("\n]\n");
 	buf.append( "} ");
@@ -255,8 +390,222 @@ public class CountandraUtils {
 
 	return (buf.toString());
 
+    }
+
+
+   
+
+
+    
+    
+
+    public ResultStatus executeQuery(String category, String subTree, String timeDimensions, String timeQuery, String timeZone) {
+	// MM-DD-YYYY:hh-mm | MM-DD-YYYY:hh-mm
+	long startDateMillis = 0L;
+	long endDateMillis = 0L;
+
+	System.out.println("----------------------------------------------");
+	
+	System.out.println(category);
+	System.out.println(subTree);
+	
+	Matcher matcher = isNumber.matcher(timeQuery);
+	if (matcher.find()) {
+	    String s[] = timeQuery.split("\\~");
+
+	    String startDate = s[0];
+	    String endDate = s[1];
+	
+	    startDateMillis = getLongMillis(startDate);
+	    endDateMillis = getLongMillis(endDate);
+
+	}
+	else {
+
+	    startDateMillis = getStartMillis(timeQuery);
+	    endDateMillis = getEndMillis(timeQuery);
+	}
+	
+
+	System.out.println(startDateMillis);
+	System.out.println(endDateMillis);
+	
+	System.out.println("----------------------------------------------");
+	return executeQuery(category, subTree, timeDimensions, startDateMillis, endDateMillis, timeZone);
+	
+    }
+
+
+    private ResultStatus executeQuery( String category, String subtree, String timeDimension, long startTime, long endTime, String timeZone) {
+	SliceCounterQuery<String, DynamicComposite> sliceCounterQuery = HFactory.createCounterSliceQuery(ksp, stringSerializer, dcs); 
+	sliceCounterQuery.setColumnFamily("DDCC");   
+	sliceCounterQuery.setKey(getKey(category,subtree));   
+	DynamicComposite startRange = getStartRange( timeDimension, startTime, endTime);
+	DynamicComposite endRange = getEndRange( timeDimension, startTime, endTime);
+	sliceCounterQuery.setColumnNames(startRange);
+	sliceCounterQuery.setRange(startRange,endRange, false, 100);
+	QueryResult  result = sliceCounterQuery.execute();    
+	return result;
+    }
 
 	
+    
+
+
+    // 1422939760000   12/03/2011 11:16 AM PST
+    // 1322936160000   12/03/2011 10:16 AM PST
+
+
+    private DynamicComposite getStartRange(String timeDimension, long startRange, long endRange) {
+	DynamicComposite range = new DynamicComposite();
+	range.add(0, timeDimension);
+	range.addComponent(new Long(startRange), longSerializer, "LongType", AbstractComposite.ComponentEquality.GREATER_THAN_EQUAL);
+	return range;
+    }
+    private DynamicComposite getEndRange(String timeDimension, long startRange, long endRange) {
+	DynamicComposite range = new DynamicComposite();
+	range.add(0, timeDimension);
+	range.addComponent(new Long(endRange), longSerializer, "LongType", AbstractComposite.ComponentEquality.LESS_THAN_EQUAL);
+	return range;
+    }
+    
+    private  String lookupCategoryId (String category) {
+	return category;
+    }
+
+    private  String lookupCategoryTimeDimensions(String lookupCategoryId) {
+	return defaultTimeDimensions;
+    }
+    
+    
+    
+
+
+    public long getLongMillis(String theDate) {
+	
+	// MM-DD-YYYY:hh-mm
+	
+	int hour = 0;
+	int min = 0;
+	int sec = 0;
+	int year;
+	int month;
+	int day;
+	
+	
+	String currentDate = theDate;
+	
+	if (theDate.matches(":")) {
+	    String splitDates [] = theDate.split(":");
+	    currentDate = splitDates[0];
+	}
+	String splitDates[] = currentDate.split("-");
+	month = Integer.parseInt(splitDates[0]);
+	day = Integer.parseInt(splitDates[1]);
+	year = Integer.parseInt(splitDates[2]);
+
+	DateTime dt = new DateTime(year, month, day, 0, 0,0, DateTimeZone.UTC);
+		
+	return dt.getMillis();
+	
+    }
+
+
+    // Thead safety ?
+
+    
+    private long getStartMillis(String timeQuery) {
+	DateTime dt = new DateTime(DateTimeZone.UTC);
+	System.out.println(timeQuery);
+	
+	TimePeriod tq = hshSupportedTimePeriods.get(timeQuery);
+	
+	if (tq != null) {
+	    switch (tq) {
+	    case THISHOUR:
+		return dt.minusHours(1).getMillis();
+	    case LASTHOUR:
+		return dt.minusHours(2).getMillis();
+	    case LASTTFHOURS:
+		return dt.minusHours(24).getMillis();
+	    case TODAY:
+		return dt.minusHours(24).getMillis();
+	    case YESTERDAY:
+		return dt.minusHours(48).getMillis();
+ 	    case THISWEEK:
+		return dt.minusWeeks(1).getMillis();
+	    case LASTWEEK:
+		return dt.minusWeeks(2).getMillis();
+	    case THISMONTH:
+		return dt.minusMonths(1).getMillis();
+	    case LASTMONTH:
+		return dt.minusMonths(2).getMillis();
+	    case THISYEAR:
+		return dt.minusYears(1).getMillis();
+	    case LASTYEAR:
+		return dt.minusYears(2).getMillis();
+
+	    }
+	    
+	}
+	else {
+	
+	    return 0L;
+	}
+	
+	return 0;
+	
+    }
+
+    // Thead safety ?
+
+    private  long getEndMillis(String timeQuery) {
+	DateTime dt = new DateTime(DateTimeZone.UTC);
+	System.out.println(timeQuery);
+	
+	TimePeriod tq = hshSupportedTimePeriods.get(timeQuery);
+	
+	if (tq != null) {
+	    switch (tq) {
+	    case THISHOUR:
+		return dt.getMillis();
+	    case LASTHOUR:
+		return dt.minusHours(1).getMillis();
+	    case LASTTFHOURS:
+		return dt.getMillis();
+	    case TODAY:
+		return dt.getMillis();
+	    case YESTERDAY:
+		return dt.minusHours(24).getMillis();
+ 	    case THISWEEK:
+		return dt.getMillis();
+	    case LASTWEEK:
+		return dt.minusWeeks(1).getMillis();
+	    case THISMONTH:
+		return dt.getMillis();
+	    case LASTMONTH:
+		return dt.minusMonths(1).getMillis();
+	    case THISYEAR:
+		return dt.getMillis();
+	    case LASTYEAR:
+		return dt.minusYears(1).getMillis();
+
+	    }
+	    
+	}
+	else {
+	
+	    return 0L;
+	}
+	
+	return 0;
+	
+    }
+
+
+
+    private String getKey(String category, String subTree) {
+	return category+":"+subTree;
 
     }
 
@@ -291,204 +640,6 @@ public class CountandraUtils {
         }
     }
 
-
-   
-
-    private String getKey(String category, String subTree) {
-	return category+":"+subTree;
-    }
-
-
-    public ResultStatus executeQuery(String category, String subTree, String timeDimensions, String timeQuery, String timeZone) {
-	// MM-DD-YYYY:hh-mm | MM-DD-YYYY:hh-mm
-	long startDateMillis = 0L;
-	long endDateMillis = 0L;
-
-	System.out.println("----------------------------------------------");
-	
-	System.out.println(category);
-	System.out.println(subTree);
-	
-	Matcher matcher = isNumber.matcher(timeQuery);
-	if (matcher.find()) {
-	    String s[] = timeQuery.split("\\~");
-
-	    String startDate = s[0];
-	    String endDate = s[1];
-	
-	    startDateMillis = getLongMillis(startDate);
-	    endDateMillis = getLongMillis(endDate);
-
-	}
-
-	System.out.println(startDateMillis);
-	System.out.println(endDateMillis);
-	
-	System.out.println("----------------------------------------------");
-	return executeQuery(category, subTree, timeDimensions, startDateMillis, endDateMillis, timeZone);
-	
-    }
-
-
-    private ResultStatus executeQuery( String category, String subtree, String timeDimension, long startTime, long endTime, String timeZone) {
-	SliceCounterQuery<String, DynamicComposite> sliceCounterQuery = HFactory.createCounterSliceQuery(ksp, stringSerializer, dcs); 
-	sliceCounterQuery.setColumnFamily("DDCC");   
-	sliceCounterQuery.setKey(getKey(category,subtree));   
-	DynamicComposite startRange = getStartRange( timeDimension, startTime, endTime);
-	DynamicComposite endRange = getEndRange( timeDimension, startTime, endTime);
-	sliceCounterQuery.setColumnNames(startRange);
-	sliceCounterQuery.setRange(startRange,endRange, false, 100);
-	QueryResult  result = sliceCounterQuery.execute();    
-	return result;
-    }
-
-	
-    public long getLongMillis(String theDate) {
-	
-	// MM-DD-YYYY:hh-mm
-	
-	int hour = 0;
-	int min = 0;
-	int sec = 0;
-	int year;
-	int month;
-	int day;
-	
-	
-	String currentDate = theDate;
-	
-	if (theDate.matches(":")) {
-	    String splitDates [] = theDate.split(":");
-	    currentDate = splitDates[0];
-	}
-	String splitDates[] = currentDate.split("-");
-	month = Integer.parseInt(splitDates[0]);
-	day = Integer.parseInt(splitDates[1]);
-	year = Integer.parseInt(splitDates[2]);
-
-	DateTime dt = new DateTime(year, month, day, 0, 0,0, DateTimeZone.UTC);
-		
-	return dt.getMillis();
-	
-    }
-    
-
-
-    // 1422939760000   12/03/2011 11:16 AM PST
-    // 1322936160000   12/03/2011 10:16 AM PST
-
-
-    private DynamicComposite getStartRange(String timeDimension, long startRange, long endRange) {
-	DynamicComposite range = new DynamicComposite();
-	range.add(0, timeDimension);
-	range.addComponent(new Long(startRange), longSerializer, "LongType", AbstractComposite.ComponentEquality.GREATER_THAN_EQUAL);
-	return range;
-    }
-    private DynamicComposite getEndRange(String timeDimension, long startRange, long endRange) {
-	DynamicComposite range = new DynamicComposite();
-	range.add(0, timeDimension);
-	range.addComponent(new Long(endRange), longSerializer, "LongType", AbstractComposite.ComponentEquality.LESS_THAN_EQUAL);
-	return range;
-    }
-    
-    private  String lookupCategoryId (String category) {
-	return category;
-    }
-
-    private  String lookupCategoryTimeDimensions(String lookupCategoryId) {
-	return defaultTimeDimensions;
-    }
-    
-    
-    public void increment(String category, String key, long time, int value) {
-	String lookupCategoryId = lookupCategoryId(category);
-	String timeDimensions = lookupCategoryTimeDimensions(lookupCategoryId);
-	
-	String [] splitKeys = key.split(delimiter);
-	int size = splitKeys.length;
-	for (int i = 1; i <= size; i++) {
-	    String subtree = new String();
-	    for (int j = 0; j < i; j++) {
-		if (j < (i-1) ) {
-		    subtree = subtree+splitKeys[j]+sDelimiter;
-		}
-		else {
-		    subtree = subtree+splitKeys[j];
-		}
-	    }
-	    denormalizedIncrement(lookupCategoryId, timeDimensions, subtree, time, value);
-	}
-    }
-
-    
-
-    public static synchronized void populateTestData() {
-	CountandraUtils cu = new CountandraUtils();
-	long currentTime = System.currentTimeMillis();
-	
-	cu.increment("pti", "com.amazon.music", currentTime, 100);
-	cu.increment("pti", "com.amazon.video", currentTime, 200);
-
-	
-	cu.increment("pti", "com.amazon.video", currentTime - 1000*3600, 200);  // 1 hour ago
-	cu.increment("pti", "com.amazon.music", currentTime - 1000*3600, 200);  // 1 hour ago
-	cu.increment("pti", "com.amazon.books", currentTime - 1000*3600, 200);  // 1 hour ago
-
-	
-	cu.increment("pti", "com.amazon.video", currentTime - 1000*3600*24, 300);  // 1 day ago
-	cu.increment("pti", "com.amazon.music", currentTime - 1000*3600*24, 100);  // 1 day ago
-	cu.increment("pti", "com.amazon.books", currentTime - 1000*3600*24, 100);  // 1 day ago
-
-	cu.increment("pti", "com.amazon.books", currentTime - 1000L*3600L*24L*31L, 78);  // 1 month ago
-	/*
-	cu.increment("pti", "com.amazon.music", currentTime - 1000*3600*24*31, 100);  // 1 month ago
-
-
-	cu.increment("pti", "com.amazon.books", currentTime - 1000*3600*24*31*112, 100);  // m years ago
-	cu.increment("pti", "com.amazon.video", currentTime - 1000*3600*24*31*112, 100);  // m years ago
-	*/
-	System.out.println(currentTime);
-	
-
-    }
-    
-    public static synchronized void initBasicDataStructures() throws IOException, Exception {
-	CassandraStorage cs = new CassandraStorage();
-	cs.addKeyspace("COUNTANDRA");
-	cs.setKeyspace("COUNTANDRA");
-
-	cs.createColumnFamily("COUNTANDRA", "MetaData");
-
-	/* KeyValues */
-
-	/*
-	  KeyValue: KV
-	  CompositeKeyValue: CKV
-	  DynamicCompositeKeyValue: DCKV
-	*/
-
-	
-	cs.createColumnFamily("COUNTANDRA", "KV");
-	cs.createColumnFamily("COUNTANDRA", "CKV", "UTF8Type","CompositeType(UTF8Type, UTF8Type)","UTF8Type" );
-	cs.createColumnFamily("COUNTANDRA", "DCKV", "UTF8Type","DynamicCompositeType (a=>AsciiType,b=>BytesType,i=>IntegerType,x=>LexicalUUIDType,l=>LongType,t=>TimeUUIDType,s=>UTF8Type,u=>UUIDType,A=>AsciiType(reversed=true),B=>BytesType(reversed=true),I=>IntegerType(reversed=true),X=>LexicalUUIDType(reversed=true),L=>LongType(reversed=true),T=>TimeUUIDType(reversed=true),S=>UTF8Type(reversed=true),U=>UUIDType(reversed=true))","UTF8Type" );	
-	cs.createColumnFamily("COUNTANDRA", "DCKVI", "UTF8Type","DynamicCompositeType(p=>IntegerType )","UTF8Type" );	
-
-	/* Disributed Counters */
-
-	/*
-	  DistributedCounters:DC
-	  DistributedCompositeCounters: DCC
-	  DistributedDynamicCompositeCounters: DDCC
-	*/
-
-	cs.createColumnFamily("COUNTANDRA", "DC", "UTF8Type", "UTF8Type","CounterColumnType" );
-	cs.createColumnFamily("COUNTANDRA", "DCC", "UTF8Type","CompositeType(UTF8Type,UTF8Type)","CounterColumnType" );
-	cs.createColumnFamily("COUNTANDRA", "DDCC", "UTF8Type", "DynamicCompositeType (a=>AsciiType,b=>BytesType,i=>IntegerType,x=>LexicalUUIDType,l=>LongType,t=>TimeUUIDType,s=>UTF8Type,u=>UUIDType,A=>AsciiType(reversed=true),B=>BytesType(reversed=true),I=>IntegerType(reversed=true),X=>LexicalUUIDType(reversed=true),L=>LongType(reversed=true),T=>TimeUUIDType(reversed=true),S=>UTF8Type(reversed=true),U=>UUIDType(reversed=true))" ,"CounterColumnType" );
-
-
-
-    }
-    
 
 
 }

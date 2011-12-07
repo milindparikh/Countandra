@@ -1,5 +1,7 @@
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.NOT_IMPLEMENTED;
+
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
@@ -42,10 +44,15 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 
 public class NettyUtils {
     private static boolean nettyStarted = false;
+    public static final  String PROCESSINSERT = "insert";
+    public static final String M_CATEGORY = "c";
+    public static final String M_SUBTREE = "s";
+    public static final String M_TIMEPERIOD = "t";
+    public static final String M_VALUE = "v";
 
-    private HttpRequest request;
+
     
-    public static synchronized void startupNettyServer()  {
+    public static synchronized void startupNettyServer(int httpPort)  {
 	if (nettyStarted) return;
 	nettyStarted=true;
 	ServerBootstrap server 
@@ -55,7 +62,7 @@ public class NettyUtils {
 	
 			
 	server.setPipelineFactory(new CountandraHttpServerPipelineFactory());		
-	server.bind(new InetSocketAddress(8080));
+	server.bind(new InetSocketAddress(httpPort));
 			
     }
 
@@ -79,6 +86,44 @@ public class NettyUtils {
 	extends SimpleChannelUpstreamHandler {
 	private final StringBuilder buf = new StringBuilder();
 
+	    public void processInsertRequest(String postContent) {
+		String [] splitContents = postContent.split("&");
+
+		String category = "";
+		String subTree = "";
+		String timePeriod="";
+		String value="";
+			    
+		String [] hshValues;
+			    
+		for (int i = 0; i < splitContents.length; i++) {
+		    hshValues = splitContents[i].split("=");
+		    if (hshValues[0].equals(M_CATEGORY)) {
+			category = hshValues[1];
+		    }
+		    else if (hshValues[0].equals(M_SUBTREE)) {
+			subTree = hshValues[1];
+		    }
+		    else if (hshValues[0].equals(M_TIMEPERIOD)) {
+			timePeriod = hshValues[1];
+		    }
+		    else if (hshValues[0].equals(M_VALUE)) {
+			value = hshValues[1];
+		    }
+		}
+		//		internalprocess(category, subTree,timePeriod, value);
+		CountandraUtils cu = new CountandraUtils();
+		cu.increment(category, subTree, Long.parseLong(timePeriod), Integer.parseInt(value));
+	    }
+
+		
+	    public void internalprocess(String category, String subTree, String timePeriod, String value){
+		    System.out.print(category + ":--:");
+		    System.out.print(subTree + ":--:");
+		    System.out.print(timePeriod + ":--:");
+		    System.out.println(value);
+	    }
+
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 
 	    HttpRequest request = (HttpRequest) e.getMessage();
@@ -89,7 +134,6 @@ public class NettyUtils {
 	    if (request.getMethod() == HttpMethod.GET) {
 		
 		buf.append("REQUEST_URI: " + request.getUri() + "\r\n\r\n");
-		//Writing response, wait till it is completely written and close channel after that
 
 		buf.append(CountandraUtils.processRequest(request.getUri()));
 		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
@@ -99,21 +143,29 @@ public class NettyUtils {
 		e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
 	    
 	    }
-	    else { // Assume that this is a HTTP POST
-		//Processing request, here is the problem. The string from the content is empty.
-		buf.append(((HttpRequest) e.getMessage()).getContent().toString(CharsetUtil.UTF_8));
-		
-		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-		response.setContent(ChannelBuffers.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));
-		
-		response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
-		e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
-
+	    else if (request.getMethod() == HttpMethod.POST) {
+		    if (request.getUri().equals(PROCESSINSERT)) {
+			buf.setLength(0);
+			buf.append(((HttpRequest) e.getMessage()).getContent().toString(CharsetUtil.UTF_8));
+			String postContent = buf.toString();
+			processInsertRequest(postContent);
+			//Writing response, wait till it is completely written and close channel after that
+			HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+			response.setContent(ChannelBuffers.copiedBuffer("ok", CharsetUtil.UTF_8));
+			response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+			e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		    }
+		    else {
+			HttpResponse response = new DefaultHttpResponse(HTTP_1_1, NOT_IMPLEMENTED);
+			e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		    }
+		    
 	    }
-
-	    
-
+	    else {
+		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, NOT_IMPLEMENTED);
+		e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
 	
+	    }
 	}
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 	    super.exceptionCaught(ctx, e);		

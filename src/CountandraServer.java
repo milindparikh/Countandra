@@ -29,13 +29,17 @@ import org.apache.commons.cli.Options;
 public class CountandraServer {
     
     public static Options options = new Options(); 
+    
     static {
 	options.addOption("s", "server-mode", false, " Cassandra Server Mode");
+
+
 	options.addOption("i", "init", false, " Initialize Cassandra with basic structures");
 	options.addOption("h", "hector", false, " Test Hector");
 
     }
 
+    private static int httpPort = 8080;
     
    
     public static void main (String args[])  {
@@ -46,19 +50,19 @@ public class CountandraServer {
 	    CommandLineParser parser = new PosixParser();
 	    CommandLine line = parser.parse( options, args );
 	    
-	    if (line.hasOption("s")) {
+ 	    if (line.hasOption("s")) {
 		// cassandra server
 		CassandraUtils.startupCassandraServer();
 		if (line.hasOption("i")) {
-		    CountandraUtils.initBasicDataStructures();
+		    CassandraUtils.initBasicDataStructures();
 		}
 	    }
 	    if (line.hasOption("h")) {
-		CountandraUtils.populateTestData();
-			CountandraUtils.printResults();
+		//		CountandraUtils.populateTestData();
+		//	CountandraUtils.printResults();
 	    }
 	    // http server
-	    NettyUtils.startupNettyServer(); 
+	    NettyUtils.startupNettyServer(httpPort); 
 	
 	} 
 	catch (IOException ioe) {
