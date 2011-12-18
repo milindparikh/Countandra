@@ -70,4 +70,74 @@
       </java>
     </target>
 
+
+    <target name="httpserveronly" depends="jar">
+      <java fork="true" classname="${main-class}">
+	<arg line="-h -httpserverport 8080"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
+
+
+    <target name="cassandraserveronly" depends="jar">
+      <delete dir="c:\Users\OWNER\var"/>
+
+      <java fork="true" classname="${main-class}">
+	<arg line="-s"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
+    <target name="runcountandra" depends="jar">
+      <delete dir="c:\Users\OWNER\var"/>
+
+      <java fork="true" classname="${main-class}">
+	<arg line="-s -h -httpserverport 8080"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
+    <target name="runcountandrainit" depends="jar">
+      <delete dir="c:\Users\OWNER\var"/>
+
+      <java fork="true" classname="${main-class}">
+	<arg line="-s -h -i -httpserverport 8080"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
+
+    <target name="initcassandradb" depends="jar">
+      <java fork="true" classname="${main-class}">
+	<arg line="-i"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
 </project>
