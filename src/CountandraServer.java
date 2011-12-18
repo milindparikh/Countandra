@@ -25,6 +25,26 @@ import org.apache.commons.cli.CommandLine;
 
 import org.apache.commons.cli.Options;
 
+import org.countandra.netty.*;
+import org.countandra.cassandra.*;
+import org.countandra.utils.*;
+
+
+// CassandraServer is local (with CassandraYaml specify the data store and distributed servers)  
+//    -local-cassandra -local-cassandra-thrift-port -local-cassandra-thrift-ip
+//      Therefore start the CassandraServer and
+//      Initialize the data structures associated with Countandra including some default values
+//         on localhost and specified port 9160?
+// CassandraServer is remote
+//      Assume that the initialization is done seperately and the CassandraServer is started seperately
+//      just need a pointer there to the host and port (could be localhost and default port)
+//      -remote-cassandra -remote-cassandra-thrift-port -remote-cassandra-thrift-ip
+
+
+// HttpServer is always assumed to be local and should  be started 
+// --http-server -http-server-port
+
+     
 
 public class CountandraServer {
     
@@ -32,14 +52,15 @@ public class CountandraServer {
     
     static {
 	options.addOption("s", "server-mode", false, " Cassandra Server Mode");
-
-
 	options.addOption("i", "init", false, " Initialize Cassandra with basic structures");
-	options.addOption("h", "hector", false, " Test Hector");
+	options.addOption("h", "httpserver", false, " Whether to include httserver");	
+	options.addOption("httpserverport", "httpserverport", true, " httpserver port in case the default of 8080 does not work");
+	options.addOption("cassandrahostip", "cassandrahostip", true, " cassandra host ip for  httpserverto communicate to");
 
     }
 
     private static int httpPort = 8080;
+    private static String cassandraServerForClient = new String("localhost:9160");
     
    
     public static void main (String args[])  {
@@ -51,18 +72,34 @@ public class CountandraServer {
 	    CommandLine line = parser.parse( options, args );
 	    
  	    if (line.hasOption("s")) {
+		System.out.println("Starting Cassandra");
 		// cassandra server
 		CassandraUtils.startupCassandraServer();
-		if (line.hasOption("i")) {
-		    CassandraUtils.initBasicDataStructures();
-		}
 	    }
+	    if (line.hasOption("i")) {
+		System.out.println("Initializing Basic structures");
+		CountandraUtils.initBasicDataStructures();
+		System.out.println("Initialized Basic structures");
+	    }
+	    
 	    if (line.hasOption("h")) {
-		//		CountandraUtils.populateTestData();
-		//	CountandraUtils.printResults();
+		
+		if (line.hasOption("httpserverport") ) {
+		    httpPort = Integer.parseInt(line.getOptionValue("httpserverport"));
+		}
+
+		if (line.hasOption("cassandrahostip") ) {
+		    CountandraUtils.setCassandraHostIp(line.getOptionValue("cassandrahostIp"));
+		}
+		else {
+		    CountandraUtils.setCassandraHostIp("localhost:9160");
+		}
+
+		    
+		NettyUtils.startupNettyServer(httpPort); 
 	    }
 	    // http server
-	    NettyUtils.startupNettyServer(httpPort); 
+
 	
 	} 
 	catch (IOException ioe) {
