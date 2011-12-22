@@ -1,0 +1,6 @@
+query/pti/com/THISWEEK/DAILY/COUNTS
+query/pti/com/THISWEEK/DAILY/SUMS
+query/pti/com/TODAY/HOURLY/SQUARES
+
+
+
