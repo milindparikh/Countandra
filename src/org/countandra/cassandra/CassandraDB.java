@@ -99,10 +99,9 @@ public class CassandraDB
 	client = new Cassandra.Client(proto);
 
 	tr.open();
-	System.out.println("Inside the addkeyspace thing");
 	
 	client.system_add_keyspace(ksDef); 
-	System.out.println("after the addkeyspace thing");
+
 	tr.close();
 
 

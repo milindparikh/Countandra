@@ -1,3 +1,4 @@
+
 package org.countandra.netty;
 
 import java.io.*;
@@ -150,18 +151,20 @@ public class NettyUtils {
 	    }
 	    else if (request.getMethod() == HttpMethod.POST) {
  		    if (request.getUri().equals(PROCESSINSERT)) {
+			//			System.out.println("In insert");
 			
 			buf.setLength(0);
 			buf.append(((HttpRequest) e.getMessage()).getContent().toString(CharsetUtil.UTF_8));
 			String postContent = buf.toString();
-			//			System.out.println(postContent);
-			
+			//		System.out.println(postContent);
 			processInsertRequest(postContent);
 			//Writing response, wait till it is completely written and close channel after that
 			response = new DefaultHttpResponse(HTTP_1_1, OK);
 			response.setContent(ChannelBuffers.copiedBuffer("ok", CharsetUtil.UTF_8));
 			response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
 			e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+			//			System.out.println("sending close  insert");			
+			
 		    }
 		    else  		    if (request.getUri().equals(INITCASSANDRADB)) { 
 			CountandraUtils.initBasicDataStructures();
@@ -200,7 +203,6 @@ public class NettyUtils {
 			    response.setContent(ChannelBuffers.copiedBuffer("ok", CharsetUtil.UTF_8));
 			    response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
 			    e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
-
 			  
 			    
 			}

@@ -567,7 +567,7 @@ public class CountandraUtils {
     
     public static synchronized void initBasicDataStructures() throws IOException, Exception {
 
-	System.out.println("inside initBasicDataStructure");	
+	System.out.println("Creating Countandra keyspace/s and column family");	
 	CassandraDB csdb = new CassandraDB();
 	csdb.addKeyspace(CassandraStorage.s_keySpace);
 	
@@ -575,7 +575,8 @@ public class CountandraUtils {
 	csdb.createColumnFamily(CassandraStorage.s_keySpace, "MetaData");
 
 	csdb.createColumnFamily(CassandraStorage.s_keySpace, countandraCF, "UTF8Type", "DynamicCompositeType (a=>AsciiType,b=>BytesType,i=>IntegerType,x=>LexicalUUIDType,l=>LongType,t=>TimeUUIDType,s=>UTF8Type,u=>UUIDType,A=>AsciiType(reversed=true),B=>BytesType(reversed=true),I=>IntegerType(reversed=true),X=>LexicalUUIDType(reversed=true),L=>LongType(reversed=true),T=>TimeUUIDType(reversed=true),S=>UTF8Type(reversed=true),U=>UUIDType(reversed=true))" ,"CounterColumnType" );
-
+	System.out.println("Created Countandra keyspace/s and column family");	
+	
 	/* KeyValues */
 
 	/*
