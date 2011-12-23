@@ -204,8 +204,8 @@ public class CountandraUtils {
 
 
     public static void setCassandraHostIp(String hostIp) {
-	CassandraStorage.setGlobalParams(hostIp);
-	CassandraDB.setGlobalParams(hostIp);
+	//	CassandraStorage.setGlobalParams(hostIp);
+	//	CassandraDB.setGlobalParams(hostIp);
     }
 
 
