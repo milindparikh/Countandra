@@ -56,6 +56,12 @@ public class CountandraServer {
 	options.addOption("h", "httpserver", false, " Whether to include httserver");	
 	options.addOption("httpserverport", "httpserverport", true, " httpserver port in case the default of 8080 does not work");
 	options.addOption("cassandrahostip", "cassandrahostip", true, " cassandra host ip for  httpserverto communicate to");
+	options.addOption("consistencylevel", "consistencylevel", true, " consistency levels of writes/reads");
+	
+	options.addOption("replicationfactor", "replicationfactor", true, " replicas of data");
+	options.addOption("locatorstrategy", "locatorstrategy", true, "how the rows should be located");
+
+	
 
     }
 
@@ -70,7 +76,39 @@ public class CountandraServer {
 
 	    CommandLineParser parser = new PosixParser();
 	    CommandLine line = parser.parse( options, args );
-	    
+
+	    if (line.hasOption("cassandrahostip")) {
+		if (line.hasOption("consistencylevel")) {
+		    if (line.hasOption("replicationfactor")) {
+
+			    CassandraStorage.setGlobalParams(line.getOptionValue("cassandrahostip"), line.getOptionValue("consistencylevel"));
+			    CassandraDB.setGlobalParams(line.getOptionValue("cassandrahostip"), line.getOptionValue("replicationfactor"));
+
+		    }
+		    else {
+
+			    CassandraStorage.setGlobalParams(line.getOptionValue("cassandrahostip"), line.getOptionValue("consistencylevel"));
+			    CassandraDB.setGlobalParams(line.getOptionValue("cassandrahostip"));
+
+		    }
+		}
+
+		else {  // no consistency level -- assumed to be ONE
+		    if (line.hasOption("replicationfactor")) {
+
+			    CassandraStorage.setGlobalParams(line.getOptionValue("cassandrahostip"));
+			    CassandraDB.setGlobalParams(line.getOptionValue("cassandrahostip"), line.getOptionValue("replicationfactor"));
+
+		    }
+		    else {
+
+			    CassandraStorage.setGlobalParams(line.getOptionValue("cassandrahostip"));
+			    CassandraDB.setGlobalParams(line.getOptionValue("cassandrahostip"));
+
+		    }
+		}
+	    }
+
  	    if (line.hasOption("s")) {
 		System.out.println("Starting Cassandra");
 		// cassandra server

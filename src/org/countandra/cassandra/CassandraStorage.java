@@ -59,8 +59,9 @@ public class CassandraStorage
     
 
     static String s_hostIp = new String("localhost:9160"); 
-    static String s_clusterName = new String("test-cluster");
     static String s_consistencyLevel = new String("ONE");
+
+    static String s_clusterName = new String("test-cluster");
     public static String s_keySpace = "COUNTANDRA";
     
     
@@ -78,17 +79,18 @@ public class CassandraStorage
 
 
 
-    public static void setGlobalParams (String hostIp) {
+
+    public static synchronized void setGlobalParams (String hostIp) {
 	setGlobalParams ( s_clusterName,  hostIp,  s_consistencyLevel,  s_keySpace) ;
 	
     }
 
-    public static void setGlobalParams (String hostIp, String consistencyLevel) {
+    public static synchronized void setGlobalParams (String hostIp, String consistencyLevel) {
 	setGlobalParams ( s_clusterName,  hostIp,  consistencyLevel,  s_keySpace) ;
 	
     }
 
-    public static void setGlobalParams (String clusterName, String hostIp, String consistencyLevel, String keySpace) {
+    public static synchronized void setGlobalParams (String clusterName, String hostIp, String consistencyLevel, String keySpace) {
 
 	s_hostIp = hostIp;
 	s_clusterName = clusterName;

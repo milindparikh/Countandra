@@ -69,12 +69,12 @@ public class CassandraDB
     private static String s_locatorStrategy = new String ("org.apache.cassandra.locator.SimpleStrategy");
     private static String s_replicationFactor = new String("1");
     
-    public static void setGlobalParams(String hostIp) {
+    public static synchronized void setGlobalParams(String hostIp) {
 	String [] split_hostIp = hostIp.split(":");
 	cassandraHost = split_hostIp[0];
 	cassandraPort = Integer.parseInt(split_hostIp[1]);
     }
-    public static void setGlobalParams(String hostIp, String replicationFactor) {
+    public static synchronized void setGlobalParams(String hostIp, String replicationFactor) {
 	setGlobalParams( hostIp);
 	s_replicationFactor = replicationFactor;
     }
