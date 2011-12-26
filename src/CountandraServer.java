@@ -115,9 +115,16 @@ public class CountandraServer {
 		CassandraUtils.startupCassandraServer();
 	    }
 	    if (line.hasOption("i")) {
+	     if (line.hasOption("cassandrahostip") ) {
+		System.out.println("Initializing Basic structures");
+		CountandraUtils.initBasicDataStructures(line.getOptionValue("cassandrahostIp"));
+		System.out.println("Initialized Basic structures");
+             }
+             else{
 		System.out.println("Initializing Basic structures");
 		CountandraUtils.initBasicDataStructures();
 		System.out.println("Initialized Basic structures");
+             }
 	    }
 	    
 	    if (line.hasOption("h")) {
