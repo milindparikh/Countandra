@@ -128,7 +128,7 @@ public class CountandraServer {
 				if (line.hasOption("cassandrahostip")) {
 					System.out.println("Initializing Basic structures");
 					CountandraUtils.setCassandraHostIp(line
-							.getOptionValue("cassandrahostIp"));
+							.getOptionValue("cassandrahostip"));
 					CountandraUtils.initBasicDataStructures();
 					System.out.println("Initialized Basic structures");
 				} else {
