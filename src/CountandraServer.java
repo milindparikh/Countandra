@@ -144,14 +144,12 @@ public class CountandraServer {
 					httpPort = Integer.parseInt(line
 							.getOptionValue("httpserverport"));
 				}
-
 				if (line.hasOption("cassandrahostip")) {
 					CountandraUtils.setCassandraHostIp(line
-							.getOptionValue("cassandrahostIp"));
+							.getOptionValue("cassandrahostip"));
 				} else {
 					CountandraUtils.setCassandraHostIp("localhost:9160");
 				}
-
 				NettyUtils.startupNettyServer(httpPort);
 			}
 			// http server
