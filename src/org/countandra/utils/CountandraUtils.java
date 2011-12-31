@@ -190,6 +190,7 @@ public class CountandraUtils {
 
 	public static void setCassandraHostIp(String hostIp) {
 		CassandraDB.setGlobalParams(hostIp);
+		CassandraStorage.setGlobalParams(hostIp);
 	}
 
 	public void increment(String category, String key, long time, int value) {
