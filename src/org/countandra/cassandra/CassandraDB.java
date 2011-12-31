@@ -74,7 +74,7 @@ public class CassandraDB {
 	}
 
 	public void addKeyspace(String keyspace) throws Exception {
-
+		
 		addKeyspace(keyspace, s_locatorStrategy, s_replicationFactor);
 
 	}
@@ -85,13 +85,11 @@ public class CassandraDB {
 		List<CfDef> cfDefList = new ArrayList<CfDef>();
 		KsDef ksDef = new KsDef(keyspace, locatorStrategy, cfDefList);
 		ksDef.putToStrategy_options("replication_factor", replicationFactor);
-
 		tr = new TFramedTransport(new TSocket(cassandraHost, cassandraPort));
 		proto = new TBinaryProtocol(tr);
 		client = new Cassandra.Client(proto);
-
+		
 		tr.open();
-
 		client.system_add_keyspace(ksDef);
 
 		tr.close();
@@ -122,6 +120,20 @@ public class CassandraDB {
 		client.system_add_column_family(columnFamily);
 		tr.close();
 
+	}
+	public boolean isCassandraUp(){
+		tr = new TFramedTransport(new TSocket(cassandraHost, cassandraPort));
+		try{
+			
+			tr.open();
+			if(tr.isOpen()){
+				return true;
+			}else{
+				return false;
+			}
+		}catch(Exception e){
+			return false;
+		}
 	}
 
 }

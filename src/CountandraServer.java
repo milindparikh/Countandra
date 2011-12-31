@@ -78,6 +78,8 @@ public class CountandraServer {
 			CommandLine line = parser.parse(options, args);
 
 			if (line.hasOption("cassandrahostip")) {
+				CountandraUtils.setCassandraHostIp(line
+						.getOptionValue("cassandrahostip"));
 				if (line.hasOption("consistencylevel")) {
 					if (line.hasOption("replicationfactor")) {
 
@@ -117,40 +119,37 @@ public class CountandraServer {
 
 					}
 				}
+			} else {
+				CassandraStorage.setGlobalParams(cassandraServerForClient);
+				CassandraDB.setGlobalParams(cassandraServerForClient);
 			}
 
 			if (line.hasOption("s")) {
 				System.out.println("Starting Cassandra");
 				// cassandra server
 				CassandraUtils.startupCassandraServer();
-			}
-			if (line.hasOption("i")) {
-				if (line.hasOption("cassandrahostip")) {
+			
+			}if (line.hasOption("i")) {
+			   System.out.print("Checking if Cassandra is initialized");
+			   CassandraDB csdb = new CassandraDB();
+			   while(!csdb.isCassandraUp()){
+				   System.out.print(".");
+			   }
+			   System.out.println(".");
 					System.out.println("Initializing Basic structures");
-					CountandraUtils.setCassandraHostIp(line
-							.getOptionValue("cassandrahostip"));
 					CountandraUtils.initBasicDataStructures();
 					System.out.println("Initialized Basic structures");
-				} else {
-					System.out.println("Initializing Basic structures");
-					CountandraUtils.initBasicDataStructures();
-					System.out.println("Initialized Basic structures");
-				}
+			
 			}
-
+            
 			if (line.hasOption("h")) {
 
 				if (line.hasOption("httpserverport")) {
 					httpPort = Integer.parseInt(line
 							.getOptionValue("httpserverport"));
 				}
-				if (line.hasOption("cassandrahostip")) {
-					CountandraUtils.setCassandraHostIp(line
-							.getOptionValue("cassandrahostip"));
-				} else {
-					CountandraUtils.setCassandraHostIp("localhost:9160");
-				}
 				NettyUtils.startupNettyServer(httpPort);
+				System.out.println("Started Http Server");
 			}
 			// http server
 

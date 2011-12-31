@@ -545,6 +545,7 @@ public class CountandraUtils {
 
 		System.out.println("Creating Countandra keyspace/s and column family");
 		CassandraDB csdb = new CassandraDB();
+		System.out.println("Creating Cassandra Db");
 		csdb.addKeyspace(CassandraStorage.s_keySpace);
 
 		csdb.createColumnFamily(CassandraStorage.s_keySpace, "MetaData");
@@ -587,5 +588,6 @@ public class CountandraUtils {
 		 */
 
 	}
+	
 
 }
