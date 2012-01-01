@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
@@ -303,30 +305,13 @@ public class CountandraUtils {
 					td.getSCode(), timePeriod, "Pacific");
 			if (result instanceof QueryResult) {
 
-				buf.setLength(0);
-				buf.append(" { \"Results\": ");
-				buf.append("{ \n");
+				Map<String, Object> classificationMap = new LinkedHashMap<String, Object>();
+				classificationMap.put("Category", category);
+				classificationMap.put("SubTree", subTree);
+				classificationMap.put("Time Dimension", timeDimension);
+				classificationMap.put("Time Period", timePeriod);
 
-				buf.append(" 	\"Category\": ");
-				buf.append(category);
-				buf.append(",\n");
-
-				buf.append(" 	\"SubTree\": ");
-				buf.append(subTree);
-				buf.append(",\n");
-
-				buf.append(" 	\"Time Dimension\": ");
-				buf.append(timeDimension);
-				buf.append(",\n");
-
-				buf.append(" 	\"Time Period\": ");
-				buf.append(timePeriod);
-				buf.append(",\n");
-
-				buf.append("	\"Data\": ");
-				buf.append("\n[\n");
-
-				buf.append("\n");
+				Map<Object, Long> dataMap = new LinkedHashMap<Object, Long>();
 				QueryResult<?> qr = (QueryResult) result;
 				if (qr.get() instanceof CounterSlice) {
 					List<HCounterColumn<DynamicComposite>> lCols = ((CounterSlice) qr
@@ -336,17 +321,15 @@ public class CountandraUtils {
 								.get(i);
 						DynamicComposite nameHcc = (DynamicComposite) hcc
 								.getName();
-						buf.append(hcc.getName());
-						buf.append(hcc.getValue());
-						buf.append("\n");
+						dataMap.put(hcc.getName(), hcc.getValue());
 					}
 				}
+				classificationMap.put("Data", dataMap);
 
-				buf.append("\n]\n");
-				buf.append("} ");
-				buf.append("} ");
+				Map resultMap = new LinkedHashMap();
+				resultMap.put("Results", classificationMap);
+				return JSONValue.toJSONString(resultMap);
 
-				return (buf.toString());
 			} else {
 				throw new CountandraException(
 						CountandraException.Reason.UNKNOWNERROR);
@@ -588,6 +571,5 @@ public class CountandraUtils {
 		 */
 
 	}
-	
 
 }
