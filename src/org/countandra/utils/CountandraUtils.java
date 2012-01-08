@@ -281,7 +281,21 @@ public class CountandraUtils {
 				String subTree = splitParams[3];
 				String period = splitParams[4];
 				String timeDimension = splitParams[5];
-				return runQuery(category, subTree, timeDimension, period);
+				if (splitParams.length == 6) {
+					System.out.println("It is 6");
+
+					return runQuery(category, subTree, timeDimension, period,
+							"SUMS");
+
+				} else if (splitParams.length == 7) {
+					System.out.println("It is 7");
+					return runQuery(category, subTree, timeDimension, period,
+							splitParams[6]);
+				} else {
+					throw new CountandraException(
+							CountandraException.Reason.MALFORMEDQUERY);
+				}
+
 			} else {
 				throw new CountandraException(
 						CountandraException.Reason.MISMATCHEDQUERY);
@@ -293,16 +307,16 @@ public class CountandraUtils {
 	}
 
 	public static String runQuery(String category, String subTree,
-			String timeDimension, String timePeriod) throws CountandraException {
-
-		StringBuilder buf = new StringBuilder();
+			String timeDimension, String timePeriod, String countType)
+			throws CountandraException {
 
 		TimeDimension td = hshReverseSupportedTimeDimensions.get(timeDimension);
 		if (td != null) {
 
 			CountandraUtils cu = new CountandraUtils();
 			ResultStatus result = cu.executeQuery(category, subTree,
-					td.getSCode(), timePeriod, "Pacific");
+					td.getSCode(), timePeriod, "Pacific", countType);
+
 			if (result instanceof QueryResult) {
 
 				Map<String, Object> classificationMap = new LinkedHashMap<String, Object>();
@@ -341,7 +355,8 @@ public class CountandraUtils {
 	}
 
 	public ResultStatus executeQuery(String category, String subTree,
-			String timeDimensions, String timeQuery, String timeZone) {
+			String timeDimensions, String timeQuery, String timeZone,
+			String countType) {
 		// MM-DD-YYYY:hh-mm | MM-DD-YYYY:hh-mm
 		long startDateMillis = 0L;
 		long endDateMillis = 0L;
@@ -358,17 +373,26 @@ public class CountandraUtils {
 			endDateMillis = getEndMillis(timeQuery);
 		}
 		return executeQuery(category, subTree, timeDimensions, startDateMillis,
-				endDateMillis, timeZone);
+				endDateMillis, timeZone, countType);
 	}
 
 	private ResultStatus executeQuery(String category, String subtree,
 			String timeDimension, long startTime, long endTime, String timeZone) {
+
+		return executeQuery(category, subtree, timeDimension, startTime,
+				endTime, timeZone, "SUMS");
+
+	}
+
+	private ResultStatus executeQuery(String category, String subtree,
+			String timeDimension, long startTime, long endTime,
+			String timeZone, String countType) {
 		SliceCounterQuery<String, DynamicComposite> sliceCounterQuery = HFactory
 				.createCounterSliceQuery(
 						CassandraStorage.getCountandraKeySpace(),
 						stringSerializer, dcs);
 		sliceCounterQuery.setColumnFamily(countandraCF);
-		sliceCounterQuery.setKey(getKey(category, subtree));
+		sliceCounterQuery.setKey(getKey(category, subtree, countType));
 		DynamicComposite startRange = getStartRange(timeDimension, startTime,
 				endTime);
 		DynamicComposite endRange = getEndRange(timeDimension, startTime,
@@ -378,9 +402,6 @@ public class CountandraUtils {
 		QueryResult result = sliceCounterQuery.execute();
 		return result;
 	}
-
-	// 1422939760000 12/03/2011 11:16 AM PST
-	// 1322936160000 12/03/2011 10:16 AM PST
 
 	private DynamicComposite getStartRange(String timeDimension,
 			long startRange, long endRange) {
@@ -518,8 +539,8 @@ public class CountandraUtils {
 
 	}
 
-	private String getKey(String category, String subTree) {
-		return category + ":" + subTree;
+	private String getKey(String category, String subTree, String countType) {
+		return category + ":" + subTree + ":" + countType;
 
 	}
 
