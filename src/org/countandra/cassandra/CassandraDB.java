@@ -74,7 +74,7 @@ public class CassandraDB {
 	}
 
 	public void addKeyspace(String keyspace) throws Exception {
-		
+
 		addKeyspace(keyspace, s_locatorStrategy, s_replicationFactor);
 
 	}
@@ -88,7 +88,7 @@ public class CassandraDB {
 		tr = new TFramedTransport(new TSocket(cassandraHost, cassandraPort));
 		proto = new TBinaryProtocol(tr);
 		client = new Cassandra.Client(proto);
-		
+
 		tr.open();
 		client.system_add_keyspace(ksDef);
 
@@ -121,17 +121,18 @@ public class CassandraDB {
 		tr.close();
 
 	}
-	public boolean isCassandraUp(){
+
+	public boolean isCassandraUp() {
 		tr = new TFramedTransport(new TSocket(cassandraHost, cassandraPort));
-		try{
-			
+		try {
+
 			tr.open();
-			if(tr.isOpen()){
+			if (tr.isOpen()) {
 				return true;
-			}else{
+			} else {
 				return false;
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}

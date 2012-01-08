@@ -128,20 +128,21 @@ public class CountandraServer {
 				System.out.println("Starting Cassandra");
 				// cassandra server
 				CassandraUtils.startupCassandraServer();
-			
-			}if (line.hasOption("i")) {
-			   System.out.print("Checking if Cassandra is initialized");
-			   CassandraDB csdb = new CassandraDB();
-			   while(!csdb.isCassandraUp()){
-				   System.out.print(".");
-			   }
-			   System.out.println(".");
-					System.out.println("Initializing Basic structures");
-					CountandraUtils.initBasicDataStructures();
-					System.out.println("Initialized Basic structures");
-			
+
 			}
-            
+			if (line.hasOption("i")) {
+				System.out.print("Checking if Cassandra is initialized");
+				CassandraDB csdb = new CassandraDB();
+				while (!csdb.isCassandraUp()) {
+					System.out.print(".");
+				}
+				System.out.println(".");
+				System.out.println("Initializing Basic structures");
+				CountandraUtils.initBasicDataStructures();
+				System.out.println("Initialized Basic structures");
+
+			}
+
 			if (line.hasOption("h")) {
 
 				if (line.hasOption("httpserverport")) {
