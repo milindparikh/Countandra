@@ -127,6 +127,19 @@
       </java>
     </target>
 
+    <target name="testcountandra" depends="jar">
+      <delete dir="__cassandraDirectory__"/>
+
+      <java fork="true" classname="${main-class}">
+	<arg line="-s -h -i -t -httpserverport 8080 -cassandrahostip __cassandraHostIp__:__cassandraPort__"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
 
     <target name="initcassandradb" depends="jar">
       <java fork="true" classname="${main-class}">

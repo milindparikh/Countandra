@@ -296,13 +296,13 @@ public class CountandraUtils {
 				String period = splitParams[4];
 				String timeDimension = splitParams[5];
 				if (splitParams.length == 6) {
-					System.out.println("It is 6");
+					//System.out.println("It is 6");
 
 					return runQuery(category, subTree, timeDimension, period,
 							"SUMS");
 
 				} else if (splitParams.length == 7) {
-					System.out.println("It is 7");
+					//System.out.println("It is 7");
 					return runQuery(category, subTree, timeDimension, period,
 							splitParams[6]);
 				} else {

@@ -25,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
 
+
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
@@ -85,6 +86,7 @@ public class NettyUtils {
 		server.bind(new InetSocketAddress(httpPort));
 
 	}
+	
 
 	private static class CountandraHttpServerPipelineFactory implements
 			ChannelPipelineFactory {
@@ -148,7 +150,7 @@ public class NettyUtils {
 					// buf.append("REQUEST_URI: " + request.getUri() +
 					// "\r\n\r\n");
 					buf.append(requestResult);
-					System.out.println("Buffer Appended");
+					//System.out.println("Buffer Appended");
 					response = new DefaultHttpResponse(HTTP_1_1, OK);
 					response.setContent(ChannelBuffers.copiedBuffer(
 							buf.toString(), CharsetUtil.UTF_8));
@@ -175,6 +177,7 @@ public class NettyUtils {
 					String postContent = buf.toString();
 					// System.out.println(postContent);
 					processInsertRequest(postContent);
+				
 					// Writing response, wait till it is completely written and
 					// close channel after that
 					response = new DefaultHttpResponse(HTTP_1_1, OK);

@@ -14,24 +14,6 @@
  */
 
 import java.io.*;
-import org.apache.cassandra.thrift.CassandraServer;
-import org.apache.cassandra.thrift.CfDef;
-import org.apache.cassandra.thrift.Column;
-import org.apache.cassandra.thrift.ColumnOrSuperColumn;
-import org.apache.cassandra.thrift.ColumnParent;
-import org.apache.cassandra.thrift.ColumnPath;
-import org.apache.cassandra.thrift.ConsistencyLevel;
-import org.apache.cassandra.thrift.KsDef;
-import org.apache.cassandra.thrift.Mutation;
-import org.apache.cassandra.thrift.SlicePredicate;
-import org.apache.cassandra.thrift.SliceRange;
-import org.apache.cassandra.utils.ByteBufferUtil;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.PosixParser;
@@ -41,7 +23,10 @@ import org.apache.commons.cli.Options;
 
 import org.countandra.netty.*;
 import org.countandra.cassandra.*;
+import org.countandra.unittests.CountandraTestCases;
+
 import org.countandra.utils.*;
+import org.junit.runner.JUnitCore;
 
 // CassandraServer is local (with CassandraYaml specify the data store and distributed servers)  
 //    -local-cassandra -local-cassandra-thrift-port -local-cassandra-thrift-ip
@@ -64,6 +49,8 @@ public class CountandraServer {
 		options.addOption("s", "server-mode", false, " Cassandra Server Mode");
 		options.addOption("i", "init", false,
 				" Initialize Cassandra with basic structures");
+		options.addOption("t", "unit-test", false,
+				"Test Countandar for sums, counts and squares");
 		options.addOption("h", "httpserver", false,
 				" Whether to include httserver");
 		options.addOption("httpserverport", "httpserverport", true,
@@ -167,7 +154,17 @@ public class CountandraServer {
 				NettyUtils.startupNettyServer(httpPort);
 				System.out.println("Started Http Server");
 			}
-			// http server
+			try {
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			// Unit Tests
+			if (line.hasOption("t")) {
+				org.junit.runner.JUnitCore.main(CountandraTestCases.class
+						.getName());
+			}
 
 		} catch (IOException ioe) {
 			System.out.println(ioe);

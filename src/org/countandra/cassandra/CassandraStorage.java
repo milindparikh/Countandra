@@ -187,6 +187,7 @@ public class CassandraStorage {
 			String timeDimension, long time, int value) {
 
 		try {
+	
 			Mutator<String> m = HFactory.createMutator(ksp, stringSerializer);
 			DynamicComposite dcolKey = new DynamicComposite();
 			dcolKey.addComponent(timeDimension, StringSerializer.get());

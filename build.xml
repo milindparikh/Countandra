@@ -44,7 +44,7 @@
 
 
     <target name="run-init-servermode" depends="jar">
-      <delete dir="c:\Users\OWNER\var"/>
+      <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
 
       <java fork="true" classname="${main-class}">
 	<arg line="-s -i -h"/>
@@ -86,7 +86,7 @@
 
 
     <target name="cassandraserveronly" depends="jar">
-      <delete dir="c:\Users\OWNER\var"/>
+      <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
 
       <java fork="true" classname="${main-class}">
 	<arg line="-s"/>
@@ -100,10 +100,10 @@
     </target>
 
     <target name="runcountandra" depends="jar">
-      <delete dir="c:\Users\OWNER\var"/>
+      <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
 
       <java fork="true" classname="${main-class}">
-	<arg line="-s -h -httpserverport 8080"/>
+	<arg line="-s -h -httpserverport 8080 -cassandrahostip 192.168.1.2:9160 "/>
 	
 	<classpath>
 	  <path refid="classpath"/>
@@ -114,10 +114,10 @@
     </target>
 
     <target name="runcountandrainit" depends="jar">
-      <delete dir="c:\Users\OWNER\var"/>
+      <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
 
       <java fork="true" classname="${main-class}">
-	<arg line="-s -h -i -httpserverport 8080"/>
+	<arg line="-s -h -i -httpserverport 8080 -cassandrahostip 192.168.1.2:9160"/>
 	
 	<classpath>
 	  <path refid="classpath"/>
@@ -127,10 +127,23 @@
       </java>
     </target>
 
+    <target name="testcountandra" depends="jar">
+      <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
+
+      <java fork="true" classname="${main-class}">
+	<arg line="-s -h -i -t -httpserverport 8080 -cassandrahostip 192.168.1.2:9160"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
 
     <target name="initcassandradb" depends="jar">
       <java fork="true" classname="${main-class}">
-	<arg line="-i"/>
+	<arg line="-i -cassandrahostip 192.168.1.2:9160"/>
 	
 	<classpath>
 	  <path refid="classpath"/>
