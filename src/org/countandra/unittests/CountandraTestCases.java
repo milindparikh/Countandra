@@ -16,17 +16,16 @@ package org.countandra.unittests;
 
 import static org.junit.Assert.assertEquals;
 
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class CountandraTestCases {
-	public static void main(String[] args) {
-		org.junit.runner.JUnitCore.main(CountandraTestCases.class.getName());
-	}
-
-	@Test(timeout = 45000)
-	public void testData() throws Throwable {
+	@BeforeClass
+	public static void insertTestData() {
 
 		CountandraTestUtils.setPipeLineFactory();
 		DateTime dt = new DateTime(DateTimeZone.UTC);
@@ -45,113 +44,175 @@ public class CountandraTestCases {
 		CountandraTestUtils.insertData("c=pti&s=us.california.lasvegas&t="
 				+ dt.minusHours(1).getMillis() + "&v=250");
 
-		// Testing for Sums
-		new Thread(new Runnable() {
-			public void run() {
+	}
 
-				assertEquals(
-						"Data Value wrong for category with depth of 3 (sums) for last hour",
-						(Long) 500L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY"));
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-
-				assertEquals(
-						"Data Value wrong for category with depth of 3 (sums) for last hour",
-						(Long) 250L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia.augusta/LASTHOUR/MINUTELY"));
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-
-				assertEquals(
-						"Data Value wrong for category with depth of 2 (sums) for last hour",
-						(Long) 750L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY"));
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 1 (sums) for last hour",
-						(Long) 1000L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY"));
-
-			}
-		}).start();
-
-		// Testing for Counts
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 3 (counts) for last hour",
-						(Long) 2L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY/COUNTS"));
-
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 2 (counts) for last hour",
-						(Long) 3L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY/COUNTS"));
-
-			}
-		}).start();
-
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 1 (counts) for last hour",
-						(Long) 4L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY/COUNTS"));
-			}
-		}).start();
-
-		// Testing for Squares
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 3 (squares) for last hour",
-						(Long) 130000L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY/SQUARES"));
-
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 2 (squares) for last hour",
-						(Long) 192500L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY/SQUARES"));
-
-			}
-		}).start();
-
-		new Thread(new Runnable() {
-			public void run() {
-				assertEquals(
-						"Data Value wrong for category with depth of 1 (squares) for last hour",
-						(Long) 255000L,
-						(Long) CountandraTestUtils
-								.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY/SQUARES"));
-			}
-		}).start();
+	@AfterClass
+	public static void clear() {
 		CountandraTestUtils.close();
+	}
 
+	@Test
+	public void testCase1() {
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 3 (sums) for last hour",
+					(Long) 500L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY"));
+
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+	}
+
+	@Test
+	public void testCase2(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 3 (sums) for last hour",
+					(Long) 250L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia.augusta/LASTHOUR/MINUTELY"));
+
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+	}
+
+	@Test
+	public void testCase3(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 2 (sums) for last hour",
+					(Long) 750L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY"));
+
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+	}
+
+	@Test
+	public void testCase4(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 1 (sums) for last hour",
+					(Long) 1000L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY"));
+
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	// Testing for Counts
+	@Test
+	public void testCase5(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 3 (counts) for last hour",
+					(Long) 2L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY/COUNTS"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	@Test
+	public void testCase6(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 2 (counts) for last hour",
+					(Long) 3L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY/COUNTS"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	@Test
+	public void testCase7(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 2 (counts) for last hour",
+					(Long) 3L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY/COUNTS"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	@Test
+	public void testCase8(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 1 (counts) for last hour",
+					(Long) 4L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY/COUNTS"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+	}
+
+	// Testing for Squares
+	@Test
+	public void testCase9(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 3 (squares) for last hour",
+					(Long) 130000L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia.atlanta/LASTHOUR/MINUTELY/SQUARES"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	@Test
+	public void testCase10(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 2 (squares) for last hour",
+					(Long) 192500L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us.georgia/LASTHOUR/MINUTELY/SQUARES"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+
+	}
+
+	@Test
+	public void testCase11(){
+		try {
+			assertEquals(
+					"Data Value wrong for category with depth of 1 (squares) for last hour",
+					(Long) 255000L,
+					(Long) CountandraTestUtils
+							.httpGet("http://localhost:8080/query/pti/us/LASTHOUR/MINUTELY/SQUARES"));
+		} catch (AssertionError ae) {
+			throwMangledException(ae);
+		}
+	}
+
+	private static void throwMangledException(AssertionError ae) {
+
+		StackTraceElement[] stackTrace = ae.getStackTrace();
+		StackTraceElement[] newStackTrace = new StackTraceElement[1];
+		System.arraycopy(stackTrace, 0, newStackTrace, 0, newStackTrace.length);
+		ae.setStackTrace(newStackTrace);
+		throw ae;
 	}
 
 }

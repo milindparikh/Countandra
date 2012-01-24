@@ -24,6 +24,7 @@ import org.apache.commons.cli.Options;
 import org.countandra.netty.*;
 import org.countandra.cassandra.*;
 import org.countandra.unittests.CountandraTestCases;
+import org.countandra.unittests.CountandraTestUtils;
 
 import org.countandra.utils.*;
 import org.junit.runner.JUnitCore;
@@ -162,8 +163,12 @@ public class CountandraServer {
 			}
 			// Unit Tests
 			if (line.hasOption("t")) {
+				
+				
+					
 				org.junit.runner.JUnitCore.main(CountandraTestCases.class
 						.getName());
+				
 			}
 
 		} catch (IOException ioe) {
