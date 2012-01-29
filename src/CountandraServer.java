@@ -27,6 +27,8 @@ import org.countandra.unittests.CountandraTestCases;
 import org.countandra.unittests.CountandraTestUtils;
 
 import org.countandra.utils.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.runner.JUnitCore;
 
 // CassandraServer is local (with CassandraYaml specify the data store and distributed servers)  
@@ -155,20 +157,17 @@ public class CountandraServer {
 				NettyUtils.startupNettyServer(httpPort);
 				System.out.println("Started Http Server");
 			}
-			try {
-				Thread.sleep(30000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
 			// Unit Tests
 			if (line.hasOption("t")) {
-				
-				
-					
+				try {
+					Thread.sleep(30000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				org.junit.runner.JUnitCore.main(CountandraTestCases.class
 						.getName());
-				
 			}
 
 		} catch (IOException ioe) {
