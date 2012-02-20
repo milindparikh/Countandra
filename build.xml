@@ -7,7 +7,8 @@
     <property name="config.dir" value="config"/>
     
     <property name="main-class"  value="CountandraServer"/>
-
+    <property name="testload-class"  value="TestLoad"/>
+    
     <path id="classpath">
       <fileset dir="${lib.dir}" includes="**/*.jar"/>
     </path>
@@ -42,12 +43,38 @@
       </java>
     </target>
 
+    <target name="run-testload-kafka">
+
+      <java fork="true" classname="${testload-class}">
+	<arg line="k textfile.txt"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
+    <target name="run-testload-http">
+
+      <java fork="true" classname="${testload-class}">
+	<arg line="h textfile.txt"/>
+	
+	<classpath>
+	  <path refid="classpath"/>
+	  <path location="${jar.dir}/${ant.project.name}.jar"/>
+	  <path location="${config.dir}/"/>
+	</classpath>
+      </java>
+    </target>
+
 
     <target name="run-init-servermode" depends="jar">
       <delete dir="/home/nehal413/Documents/Cassandra/Dir"/>
 
       <java fork="true" classname="${main-class}">
-	<arg line="-s -i -h"/>
+	<arg line="-s -i -h -k"/>
 	
 	<classpath>
 	  <path refid="classpath"/>

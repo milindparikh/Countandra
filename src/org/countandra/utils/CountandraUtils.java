@@ -71,12 +71,19 @@ import me.prettyprint.hector.api.beans.HCounterColumn;
 
 import me.prettyprint.hector.api.query.SliceCounterQuery;
 import me.prettyprint.hector.api.beans.CounterSlice;
+import me.prettyprint.hector.api.factory.HFactory;
+import me.prettyprint.hector.api.mutation.Mutator;
 
 import org.countandra.exceptions.CountandraException;
 import org.countandra.cassandra.*;
 
 public class CountandraUtils {
-
+	public static final String M_CATEGORY = "c";
+	public static final String M_SUBTREE = "s";
+	public static final String M_TIMEPERIOD = "t";
+    public static final String M_VALUE = "v";
+    public static int BATCH_SIZE = 2000;
+    
 	static String delimiter = "\\.";
 	static String sDelimiter = ".";
 	static DynamicCompositeSerializer dcs = new DynamicCompositeSerializer();
@@ -209,32 +216,80 @@ public class CountandraUtils {
 		CassandraStorage.setGlobalParams(hostIp);
 	}
 
-	public void increment(String category, String key, long time, int value) {
+        
+    public static void processInsertRequest(String postContent) {
+	String[] splitContents = postContent.split("&");
+	
+	String category = "";
+	String subTree = "";
+	String timePeriod = "";
+	String value = "";
+	
+	String[] hshValues;
+
+	for (int i = 0; i < splitContents.length; i++) {
+	    hshValues = splitContents[i].split("=");
+	    if (hshValues[0].equals(M_CATEGORY)) {
+		category = hshValues[1];
+	    } else if (hshValues[0].equals(M_SUBTREE)) {
+		subTree = hshValues[1];
+	    } else if (hshValues[0].equals(M_TIMEPERIOD)) {
+		timePeriod = hshValues[1];
+	    } else if (hshValues[0].equals(M_VALUE)) {
+					value = hshValues[1];
+	    }
+	}
+	
+	CountandraUtils cu = new CountandraUtils();
+	cu.increment(category, subTree, Long.parseLong(timePeriod),
+		     Integer.parseInt(value));
+    }
+
+    static Mutator<String> m;
+    
+    public static void startBatch() {
+	m = HFactory.createMutator(CassandraStorage.ksp, CassandraStorage.stringSerializer);	
+    }
+    public static void finishBatch() {
+	m.execute();
+    }
+    
+    
+    public void increment(String category, String key, long time, int value) {
 		String lookupCategoryId = lookupCategoryId(category);
 		String timeDimensions = lookupCategoryTimeDimensions(lookupCategoryId);
-
+		
 		String[] splitKeys = key.split(delimiter);
 		int size = splitKeys.length;
-		for (int i = 1; i <= size; i++) {
+		try {
+		    
+		    //		    startBatch();
+		    
+		    for (int i = 1; i <= size; i++) {
 			String subtree = new String();
 			for (int j = 0; j < i; j++) {
-				if (j < (i - 1)) {
-					subtree = subtree + splitKeys[j] + sDelimiter;
-				} else {
-					subtree = subtree + splitKeys[j];
-				}
+			    if (j < (i - 1)) {
+				subtree = subtree + splitKeys[j] + sDelimiter;
+			    } else {
+				subtree = subtree + splitKeys[j];
+			    }
 			}
-			denormalizedIncrement(lookupCategoryId, timeDimensions, subtree,
-					time, value);
+			denormalizedIncrement( m , lookupCategoryId, timeDimensions, subtree,
+					       time, value);
+		    }
+		    //		    finishBatch();
+		} catch (Exception e) {
+			System.out.println(e);
+
 		}
+
 	}
 
-	private void denormalizedIncrement(String category, String ptimeDimensions,
+    private void denormalizedIncrement(Mutator<String> m , String category, String ptimeDimensions,
 			String denormalizedKey, long time, int value) {
-		CassandraStorage cs = new CassandraStorage();
+
 
 		DateTime dt = new DateTime(time);
-
 		DateTime dtm = new DateTime(dt.getYear(), dt.getMonthOfYear(),
 				dt.getDayOfMonth(), dt.getHourOfDay(), dt.getMinuteOfHour());
 		DateTime dtH = new DateTime(dt.getYear(), dt.getMonthOfYear(),
@@ -245,38 +300,77 @@ public class CountandraUtils {
 		DateTime dtY = new DateTime(dt.getYear(), 1, 1, 0, 0);
 		String[] timeDimensions = ptimeDimensions.split(",");
 
+
+		
 		for (int i = 0; i < timeDimensions.length; i++) {
 			switch (hshSupportedTimeDimensions.get(timeDimensions[i])) {
 			case MINUTELY:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.MINUTELY.getSCode(), dtm.getMillis(),
-						value);
+			    incrementCounter(m, category, denormalizedKey,
+					     TimeDimension.MINUTELY.getSCode(), dtm.getMillis(),
+					     value);
 				break;
 			case HOURLY:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.HOURLY.getSCode(), dtH.getMillis(), value);
-				break;
+			    incrementCounter(m, category, denormalizedKey,
+					     TimeDimension.HOURLY.getSCode(), dtH.getMillis(), value);
+			    break;
 			case DAILY:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.DAILY.getSCode(), dtD.getMillis(), value);
-				break;
+			    incrementCounter(m, category, denormalizedKey,
+			    						TimeDimension.DAILY.getSCode(), dtD.getMillis(), value);
+			    break;
 			case MONTHLY:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.MONTHLY.getSCode(), dtM.getMillis(),
-						value);
+			    incrementCounter(m, category, denormalizedKey,
+    						TimeDimension.MONTHLY.getSCode(), dtM.getMillis(),
+    						value);
 				break;
 			case YEARLY:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.YEARLY.getSCode(), dtY.getMillis(), value);
-				break;
+			    incrementCounter(m,category, denormalizedKey,
+			    			TimeDimension.YEARLY.getSCode(), dtY.getMillis(), value);
+			    break;
 			case ALLTIME:
-				cs.incrementCounter(category, denormalizedKey,
-						TimeDimension.ALLTIME.getSCode(), 0L, value);
-				break;
+			    incrementCounter(m,category, denormalizedKey,
+					     TimeDimension.ALLTIME.getSCode(), 0L, value);
+			    break;
 
 			}
 		}
 	}
+
+    public void incrementCounter(Mutator<String> m, String rowKey, String columnKey,
+			String timeDimension, long time, int value) {
+
+		try {
+	
+
+			DynamicComposite dcolKey = new DynamicComposite();
+			dcolKey.addComponent(timeDimension, StringSerializer.get());
+			dcolKey.addComponent(time, LongSerializer.get());
+			m.addCounter(rowKey + ":" + columnKey + ":COUNTS",
+					CountandraUtils.countandraCF, HFactory
+							.createCounterColumn(dcolKey, (long) 1,
+									new DynamicCompositeSerializer()));
+
+			m.addCounter(rowKey + ":" + columnKey + ":SUMS",
+					CountandraUtils.countandraCF, HFactory.createCounterColumn(
+							dcolKey, (long) value,
+							new DynamicCompositeSerializer()));
+
+			m.addCounter(
+					rowKey + ":" + columnKey + ":SQUARES",
+					CountandraUtils.countandraCF,
+					HFactory.createCounterColumn(dcolKey, (long) value
+							* (long) value, new DynamicCompositeSerializer()));
+
+
+			// System.out.println("after execute insert");
+
+		} catch (Exception e) {
+			System.out.println(e);
+
+		}
+
+	}
+
+
 
 	// Make this thread safe
 

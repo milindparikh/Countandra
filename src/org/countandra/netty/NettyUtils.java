@@ -68,10 +68,6 @@ public class NettyUtils {
 	public static final String PROCESSINTERNALTEST = "test";
 	public static final String INITCASSANDRADB = "init";
 
-	public static final String M_CATEGORY = "c";
-	public static final String M_SUBTREE = "s";
-	public static final String M_TIMEPERIOD = "t";
-	public static final String M_VALUE = "v";
 
 	public static synchronized void startupNettyServer(int httpPort) {
 		if (nettyStarted)
@@ -106,35 +102,14 @@ public class NettyUtils {
 			SimpleChannelUpstreamHandler {
 		private final StringBuilder buf = new StringBuilder();
 
-		public void processInsertRequest(String postContent) {
-			String[] splitContents = postContent.split("&");
+	    static int recInsertCount = 0;
+	    static long starttimestamp = System.currentTimeMillis();
+	    static long endtimestamp = System.currentTimeMillis();
+	    public CountandraHttpRequestHandler() {
+		CountandraUtils.startBatch();
+	    }
 
-			String category = "";
-			String subTree = "";
-			String timePeriod = "";
-			String value = "";
-
-			String[] hshValues;
-
-			for (int i = 0; i < splitContents.length; i++) {
-				hshValues = splitContents[i].split("=");
-				if (hshValues[0].equals(M_CATEGORY)) {
-					category = hshValues[1];
-				} else if (hshValues[0].equals(M_SUBTREE)) {
-					subTree = hshValues[1];
-				} else if (hshValues[0].equals(M_TIMEPERIOD)) {
-					timePeriod = hshValues[1];
-				} else if (hshValues[0].equals(M_VALUE)) {
-					value = hshValues[1];
-				}
-			}
-
-			CountandraUtils cu = new CountandraUtils();
-			cu.increment(category, subTree, Long.parseLong(timePeriod),
-					Integer.parseInt(value));
-		}
-
-		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+	    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 				throws Exception {
 			HttpRequest request = (HttpRequest) e.getMessage();
 			HttpResponse response = null;
@@ -176,8 +151,24 @@ public class NettyUtils {
 							.toString(CharsetUtil.UTF_8));
 					String postContent = buf.toString();
 					// System.out.println(postContent);
-					processInsertRequest(postContent);
+					CountandraUtils.processInsertRequest(postContent);
 				
+					recInsertCount++;
+					if ((recInsertCount % CountandraUtils.BATCH_SIZE) == 1) {
+					    CountandraUtils.finishBatch();
+					    
+					    endtimestamp = System.currentTimeMillis();
+					    System.out.print("It took " );
+					    System.out.print( endtimestamp - starttimestamp );
+					    System.out.print(" ms to insert ");
+					    System.out.print(CountandraUtils.BATCH_SIZE);
+					    System.out.println("records through http");
+
+					    CountandraUtils.startBatch();
+					}
+					starttimestamp = endtimestamp;
+					
+					
 					// Writing response, wait till it is completely written and
 					// close channel after that
 					response = new DefaultHttpResponse(HTTP_1_1, OK);
@@ -217,7 +208,7 @@ public class NettyUtils {
 
 						while ((strLine = br.readLine()) != null) {
 							recCount++;
-							processInsertRequest(strLine);
+							CountandraUtils.processInsertRequest(strLine);
 						}
 
 						System.out.print("Wrote ");

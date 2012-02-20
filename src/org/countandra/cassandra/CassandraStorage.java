@@ -66,7 +66,7 @@ public class CassandraStorage {
 
 	static Cluster myCluster = null;
 	static ConfigurableConsistencyLevel ccl = null;
-	static Keyspace ksp = null;
+	public static Keyspace ksp = null;
 
 	static String s_hostIp = new String("localhost:9160");
 	static String s_consistencyLevel = new String("ONE");
@@ -74,7 +74,7 @@ public class CassandraStorage {
 	static String s_clusterName = new String("test-cluster");
 	public static String s_keySpace = "COUNTANDRA";
 
-	static StringSerializer stringSerializer = StringSerializer.get();
+	public static StringSerializer stringSerializer = StringSerializer.get();
 	static LongSerializer longSerializer = LongSerializer.get();
 	static DynamicCompositeSerializer dcs = new DynamicCompositeSerializer();
 
@@ -183,39 +183,5 @@ public class CassandraStorage {
 		server.system_add_column_family(columnFamily);
 	}
 
-	public void incrementCounter(String rowKey, String columnKey,
-			String timeDimension, long time, int value) {
-
-		try {
-	
-			Mutator<String> m = HFactory.createMutator(ksp, stringSerializer);
-			DynamicComposite dcolKey = new DynamicComposite();
-			dcolKey.addComponent(timeDimension, StringSerializer.get());
-			dcolKey.addComponent(time, LongSerializer.get());
-			m.addCounter(rowKey + ":" + columnKey + ":COUNTS",
-					CountandraUtils.countandraCF, HFactory
-							.createCounterColumn(dcolKey, (long) 1,
-									new DynamicCompositeSerializer()));
-
-			m.addCounter(rowKey + ":" + columnKey + ":SUMS",
-					CountandraUtils.countandraCF, HFactory.createCounterColumn(
-							dcolKey, (long) value,
-							new DynamicCompositeSerializer()));
-
-			m.addCounter(
-					rowKey + ":" + columnKey + ":SQUARES",
-					CountandraUtils.countandraCF,
-					HFactory.createCounterColumn(dcolKey, (long) value
-							* (long) value, new DynamicCompositeSerializer()));
-
-			m.execute();
-			// System.out.println("after execute insert");
-
-		} catch (Exception e) {
-			System.out.println(e);
-
-		}
-
-	}
 
 }

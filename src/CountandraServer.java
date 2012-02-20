@@ -22,6 +22,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import org.countandra.netty.*;
+import org.countandra.kafka.*;
 import org.countandra.cassandra.*;
 import org.countandra.unittests.CountandraTestCases;
 import org.countandra.unittests.CountandraTestUtils;
@@ -56,6 +57,10 @@ public class CountandraServer {
 				"Test Countandar for sums, counts and squares");
 		options.addOption("h", "httpserver", false,
 				" Whether to include httserver");
+
+		options.addOption("k", "kafkaconsumer", false,
+				" Whether to include kafkaconsumer");
+
 		options.addOption("httpserverport", "httpserverport", true,
 				" httpserver port in case the default of 8080 does not work");
 		options.addOption("cassandrahostip", "cassandrahostip", true,
@@ -156,6 +161,13 @@ public class CountandraServer {
 				}
 				NettyUtils.startupNettyServer(httpPort);
 				System.out.println("Started Http Server");
+			}
+
+
+			if (line.hasOption("k")) {
+
+			    KafkaUtils.startupKafkaConsumer();
+			    System.out.println("Started Kafka Consumer");
 			}
 
 			// Unit Tests
