@@ -96,7 +96,7 @@ public class CountandraTestUtils {
 					.connect(new InetSocketAddress("localhost", httpPort))
 					.awaitUninterruptibly().getChannel();
 			request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
-					HttpMethod.POST, "insert");
+					HttpMethod.POST, "/insert");
 			buffer = ChannelBuffers.copiedBuffer(content,
 					Charset.defaultCharset());
 			request.addHeader(

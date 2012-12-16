@@ -116,7 +116,7 @@ public class TestLoad {
 		    .connect(new InetSocketAddress("127.0.0.1", 8080))
 		    .awaitUninterruptibly().getChannel();
 		request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
-						 HttpMethod.POST, "insert");
+						 HttpMethod.POST, "/insert");
 		recCount++;
 		if ((recCount % 1000) == 1) {
 		    endtimestamp = System.currentTimeMillis();
@@ -163,7 +163,7 @@ public class TestLoad {
 	channel = client.connect(new InetSocketAddress("127.0.0.1", 8080))
 	    .awaitUninterruptibly().getChannel();
 	request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST,
-					 "init");
+					 "/init");
 
 	buffer = ChannelBuffers.copiedBuffer(" ", Charset.defaultCharset());
 	request.addHeader(

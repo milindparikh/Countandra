@@ -64,9 +64,9 @@ import org.countandra.utils.*;
 
 public class NettyUtils {
 	private static boolean nettyStarted = false;
-	public static final String PROCESSINSERT = "insert";
-	public static final String PROCESSINTERNALTEST = "test";
-	public static final String INITCASSANDRADB = "init";
+	public static final String PROCESSINSERT = "/insert";
+	public static final String PROCESSINTERNALTEST = "/test";
+	public static final String INITCASSANDRADB = "/init";
 
 
 	public static synchronized void startupNettyServer(int httpPort) {
